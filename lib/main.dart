@@ -151,7 +151,7 @@ class _SpringState extends State<_Spring> {
   }
 }
 
-class ChrisTucker extends StatefulWidget {
+class ChrisTucker extends StatelessWidget {
   ChrisTucker(
       {required this.controller,
       required this.constraints,
@@ -164,17 +164,12 @@ class ChrisTucker extends StatefulWidget {
   final Widget child;
 
   @override
-  _ChrisTuckerState createState() => _ChrisTuckerState();
-}
-
-class _ChrisTuckerState extends State<ChrisTucker> {
-  @override
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
-        ConstrainedBox(constraints: widget.constraints, child: widget.buckle),
-        _Spring(controller: widget.controller),
-        widget.child
+        ConstrainedBox(constraints: constraints, child: buckle),
+        _Spring(controller: controller),
+        child
       ],
     );
   }
