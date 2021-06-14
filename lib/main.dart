@@ -47,17 +47,15 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(),
       body: Center(
         child: ChrisTucker(
-          controller: _scrollController,
-          constraints: BoxConstraints.tightFor(height: 100),
-          buckle: TextFormField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
+            controller: _scrollController,
+            height: 70,
+            buckle: TextFormField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
             ),
-          ),
-          child: Column(
             children: <Widget>[
-              _Spring(controller: _scrollController),
               Container(
                 height: 80,
                 color: Colors.black,
@@ -92,61 +90,8 @@ class MyHomePage extends StatelessWidget {
                   ),
                 ),
               )
-            ],
-          ),
-        ),
+            ]),
       ),
-    );
-  }
-}
-
-class _Spring extends StatefulWidget {
-  const _Spring({Key? key, required this.controller}) : super(key: key);
-
-  final ScrollController controller;
-
-  @override
-  _SpringState createState() => _SpringState();
-}
-
-class _SpringState extends State<_Spring> {
-  var height = 100.0;
-
-  void _handler() {
-    switch (widget.controller.position.userScrollDirection) {
-      case ScrollDirection.forward:
-        setState(() {
-          height = 100.0;
-        });
-        break;
-      case ScrollDirection.reverse:
-        setState(() {
-          height = 0;
-        });
-        break;
-      case ScrollDirection.idle:
-        break;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_handler);
-  }
-
-  @override
-  void didUpdateWidget(covariant _Spring oldWidget) {
-    oldWidget.controller.removeListener(() {});
-    widget.controller.addListener(_handler);
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
-      height: height,
     );
   }
 }
@@ -154,23 +99,46 @@ class _SpringState extends State<_Spring> {
 class ChrisTucker extends StatelessWidget {
   ChrisTucker(
       {required this.controller,
-      required this.constraints,
+      required this.height,
       required this.buckle,
-      required this.child});
+      required this.children});
 
   final ScrollController controller;
-  final BoxConstraints constraints;
+  final double height;
   final Widget buckle;
-  final Widget child;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        ConstrainedBox(constraints: constraints, child: buckle),
-        _Spring(controller: controller),
-        child
-      ],
-    );
+    double h = height;
+    final spring = StatefulBuilder(builder: (context, setState) {
+      controller.addListener(() {
+        switch (controller.position.userScrollDirection) {
+          case ScrollDirection.forward:
+            setState(() {
+              h = height;
+            });
+            break;
+          case ScrollDirection.reverse:
+            setState(() {
+              h = 0.0;
+            });
+            break;
+          case ScrollDirection.idle:
+            break;
+        }
+      });
+      return AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        height: h,
+      );
+    });
+    return Stack(children: <Widget>[
+      ConstrainedBox(
+          constraints: BoxConstraints.tightFor(height: height), child: buckle),
+      Column(
+        children: [spring, ...children],
+      )
+    ]);
   }
 }
