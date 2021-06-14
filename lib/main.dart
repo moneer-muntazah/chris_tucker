@@ -48,7 +48,6 @@ class MyHomePage extends StatelessWidget {
       body: Center(
         child: ChrisTucker(
             controller: _scrollController,
-            height: 70,
             buckle: TextFormField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
@@ -96,48 +95,72 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-class ChrisTucker extends StatelessWidget {
+class ChrisTucker extends StatefulWidget {
+  static const duration = Duration(milliseconds: 200);
+
   ChrisTucker(
-      {required this.controller,
-      required this.height,
-      required this.buckle,
-      required this.children});
+      {required this.controller, required this.buckle, required this.children});
 
   final ScrollController controller;
-  final double height;
   final Widget buckle;
   final List<Widget> children;
 
   @override
+  _ChrisTuckerState createState() => _ChrisTuckerState();
+}
+
+class _ChrisTuckerState extends State<ChrisTucker> {
+  final GlobalKey globalKey = GlobalKey();
+  double? height;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      final globalKeyContext = globalKey.currentContext;
+      if (globalKeyContext != null) {
+        setState(() {
+          height =
+              (globalKeyContext.findRenderObject() as RenderBox).size.height;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double h = height;
+    var h = height;
+    ScrollDirection? direction;
     final spring = StatefulBuilder(builder: (context, setState) {
-      controller.addListener(() {
-        switch (controller.position.userScrollDirection) {
-          case ScrollDirection.forward:
-            setState(() {
-              h = height;
-            });
-            break;
-          case ScrollDirection.reverse:
-            setState(() {
-              h = 0.0;
-            });
-            break;
-          case ScrollDirection.idle:
-            break;
+      widget.controller.addListener(() {
+        final d = widget.controller.position.userScrollDirection;
+        if (d != direction) {
+          direction = d;
+          switch (d) {
+            case ScrollDirection.forward:
+              setState(() {
+                h = height;
+              });
+              break;
+            case ScrollDirection.reverse:
+              setState(() {
+                h = 0.0;
+              });
+              break;
+            case ScrollDirection.idle:
+              break;
+          }
         }
       });
       return AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        height: h,
+        duration: ChrisTucker.duration,
+        height: h ?? 0.0,
       );
     });
     return Stack(children: <Widget>[
-      ConstrainedBox(
-          constraints: BoxConstraints.tightFor(height: height), child: buckle),
+      Container(key: globalKey, child: widget.buckle),
       Column(
-        children: [spring, ...children],
+        children: [spring, ...widget.children],
       )
     ]);
   }
